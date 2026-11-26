@@ -35,6 +35,18 @@ def main():
     with open(path, "w", encoding="utf-8", newline="") as handle:
         handle.write(text)
     os.chmod(path, 0o644)
+    payload = text.encode("utf-8")
+    with open(path, "rb") as handle:
+        stored = handle.read()
+    if stored != payload:
+        raise SystemExit("written bytes differ from entry")
+    roundtrip = stored.decode("utf-8")
+    if roundtrip != text:
+        raise SystemExit("written text differs from entry")
+    if "\n" in roundtrip or "\r" in roundtrip:
+        raise SystemExit("entry must be exactly one line")
+    if any(ord(ch) < 0x20 or ord(ch) == 0x7F for ch in roundtrip):
+        raise SystemExit("entry must not contain control characters")
 
 
 if __name__ == "__main__":
